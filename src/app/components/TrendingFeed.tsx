@@ -84,9 +84,18 @@ function TrendingCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-sm text-gray-900 font-medium leading-snug line-clamp-2">
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-sm text-gray-900 font-medium leading-snug line-clamp-2 hover:text-orange-600 transition-colors"
+              >
                 {item.title}
-              </div>
+                <svg className="inline-block ml-1 w-3 h-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
               <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-400 flex-wrap">
                 <span className={source.color}>{source.label}</span>
                 {subreddit && (

@@ -59,6 +59,29 @@ export const AI_KEYWORDS: Record<string, string[]> = {
     "AI breakthrough", "AI revolution", "AI disruption", "AI singularity",
     "AI winter", "AI hype", "AI crash", "existential risk",
   ],
+  // Geopolitical / War / Iran — market-moving events
+  geopolitical: [
+    "Iran", "Iran sanctions", "Iran war", "Iran nuclear", "Iran strike",
+    "Iran oil", "IRGC", "Strait of Hormuz", "Middle East conflict",
+    "Israel Iran", "Iran missile", "Iran drone",
+    "tariff", "trade war", "sanctions", "embargo",
+    "NATO", "Ukraine war", "Russia sanctions", "China Taiwan",
+    "South China Sea", "OPEC", "oil embargo",
+    "defense spending", "military", "missile strike", "airstrike",
+    "ceasefire", "escalation", "de-escalation", "geopolitical risk",
+  ],
+  // Energy markets
+  energy: [
+    "oil price", "crude oil", "WTI", "Brent crude", "natural gas",
+    "energy crisis", "energy prices", "OPEC+", "oil supply",
+    "oil demand", "petroleum", "refinery", "LNG",
+    "renewable energy", "solar energy", "wind energy", "nuclear energy",
+    "energy transition", "clean energy", "green energy",
+    "uranium", "lithium", "cobalt", "rare earth",
+    "EV battery", "electric vehicle", "Tesla energy", "grid storage",
+    "carbon capture", "hydrogen fuel", "energy storage",
+    "power grid", "electricity prices", "utility",
+  ],
 };
 
 // Flatten all keywords into a single array for matching

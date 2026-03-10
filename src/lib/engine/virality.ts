@@ -80,11 +80,11 @@ export async function calculateVirality(
     VIRALITY_WEIGHTS.velocity * velocityScore +
     VIRALITY_WEIGHTS.absolute * absoluteScore;
 
-  // Determine if viral (tighter thresholds to reduce false positives)
+  // Determine if viral (tight thresholds — only truly spiking content)
   const isViral =
-    combinedScore >= 60 || // combined threshold
-    velocityScore >= 80 || // high velocity alone
-    absoluteScore >= 90; // high absolute alone
+    combinedScore >= 70 || // combined threshold (raised from 60)
+    velocityScore >= 85 || // high velocity alone (raised from 80)
+    absoluteScore >= 95; // high absolute alone (raised from 90)
 
   return {
     velocityScore,

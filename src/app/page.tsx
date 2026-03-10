@@ -14,7 +14,7 @@ export default function Home() {
   const [alerts, setAlerts] = useState<AlertData[]>([]);
   const [tickers, setTickers] = useState<TickerSummary[]>([]);
   const [filter, setFilter] = useState<string>("all");
-  const [sourceFilter, setSourceFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string[]>([]);
   const [tickerFilter, setTickerFilter] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<TrendingItemData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,11 +58,6 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  const filteredItems =
-    sourceFilter === "all"
-      ? items
-      : items.filter((item) => item.sourceType === sourceFilter);
-
   const viralCount = items.filter((i) => i.isViral).length;
   const sourceCounts = items.reduce(
     (acc, item) => {
@@ -71,6 +66,13 @@ export default function Home() {
     },
     {} as Record<string, number>
   );
+
+  const allSourceTypes = Object.keys(sourceCounts);
+
+  const filteredItems =
+    sourceFilter.length === 0
+      ? items
+      : items.filter((item) => sourceFilter.includes(item.sourceType));
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -156,7 +158,22 @@ export default function Home() {
             {/* Source Filter */}
             <SourceFilter
               selected={sourceFilter}
-              onSelect={setSourceFilter}
+              onToggle={(source) => {
+                setSourceFilter((prev) => {
+                  // If empty (all selected), switch to "all except this one"
+                  if (prev.length === 0) {
+                    return allSourceTypes.filter((s) => s !== source);
+                  }
+                  const next = prev.includes(source)
+                    ? prev.filter((s) => s !== source)
+                    : [...prev, source];
+                  // If everything is deselected or everything is selected, reset to "all"
+                  return next.length === 0 || next.length === allSourceTypes.length
+                    ? []
+                    : next;
+                });
+              }}
+              onToggleAll={() => setSourceFilter([])}
               counts={sourceCounts}
             />
 

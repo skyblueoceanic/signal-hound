@@ -40,6 +40,17 @@ export const AI_RSS_FEEDS: Array<{
   { name: "Ars Technica AI", url: "https://feeds.arstechnica.com/arstechnica/technology-lab", category: "news" },
   { name: "TechCrunch AI", url: "https://techcrunch.com/category/artificial-intelligence/feed/", category: "news" },
   { name: "VentureBeat AI", url: "https://venturebeat.com/category/ai/feed/", category: "news" },
+
+  // Finance & Market news (only AI/energy/geopolitical content will surface via keyword filter)
+  { name: "Reuters Business", url: "https://www.reutersagency.com/feed/", category: "news" },
+  { name: "CNBC Markets", url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258", category: "news" },
+  { name: "MarketWatch", url: "https://feeds.content.dowjones.io/public/rss/mw_topstories", category: "news" },
+  { name: "Yahoo Finance", url: "https://finance.yahoo.com/news/rssindex", category: "news" },
+  { name: "Seeking Alpha", url: "https://seekingalpha.com/market_currents.xml", category: "news" },
+  { name: "Barrons", url: "https://www.barrons.com/market-data?mod=hp_LATEST&type=rss", category: "news" },
+  { name: "Google News AI", url: "https://news.google.com/rss/search?q=artificial+intelligence+stock+market&hl=en-US&gl=US&ceid=US:en", category: "news" },
+  { name: "Google News Energy", url: "https://news.google.com/rss/search?q=oil+energy+market&hl=en-US&gl=US&ceid=US:en", category: "news" },
+  { name: "Google News Iran", url: "https://news.google.com/rss/search?q=Iran+sanctions+war+oil&hl=en-US&gl=US&ceid=US:en", category: "news" },
 ];
 
 export async function fetchRSSFeed(

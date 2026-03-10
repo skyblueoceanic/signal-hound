@@ -10,19 +10,22 @@ const SOURCE_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 interface SourceFilterProps {
-  selected: string;
-  onSelect: (source: string) => void;
+  selected: string[];
+  onToggle: (source: string) => void;
+  onToggleAll: () => void;
   counts: Record<string, number>;
 }
 
-export function SourceFilter({ selected, onSelect, counts }: SourceFilterProps) {
+export function SourceFilter({ selected, onToggle, onToggleAll, counts }: SourceFilterProps) {
+  const allSelected = selected.length === 0; // empty = all selected
+
   return (
     <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
       <FilterChip
         label="All Sources"
         count={Object.values(counts).reduce((a, b) => a + b, 0)}
-        active={selected === "all"}
-        onClick={() => onSelect("all")}
+        active={allSelected}
+        onClick={onToggleAll}
       />
       {Object.entries(SOURCE_LABELS).map(([key, { label, color }]) => {
         const count = counts[key] || 0;
@@ -32,8 +35,8 @@ export function SourceFilter({ selected, onSelect, counts }: SourceFilterProps) 
             key={key}
             label={label}
             count={count}
-            active={selected === key}
-            onClick={() => onSelect(key)}
+            active={allSelected || selected.includes(key)}
+            onClick={() => onToggle(key)}
             colorClass={color}
           />
         );
@@ -65,7 +68,7 @@ function FilterChip({
       }`}
     >
       <span className={active ? "text-white" : colorClass}>{label}</span>
-      <span className="ml-1.5 text-xs text-gray-500">{count}</span>
+      <span className={`ml-1.5 text-xs ${active ? "text-gray-300" : "text-gray-400"}`}>{count}</span>
     </button>
   );
 }

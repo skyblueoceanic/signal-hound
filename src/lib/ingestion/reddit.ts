@@ -1,5 +1,6 @@
 import type { ContentItem } from "../types";
 import { matchesAIKeywords } from "../config/ai-keywords";
+import { isMemeContent } from "../config/meme-filter";
 
 const REDDIT_BASE = "https://www.reddit.com";
 const AI_SUBREDDITS = [
@@ -8,6 +9,16 @@ const AI_SUBREDDITS = [
   "artificial",
   "singularity",
   "ChatGPT",
+];
+
+// General market/finance subreddits — only AI-related content surfaces
+const MARKET_SUBREDDITS = [
+  "stocks",
+  "investing",
+  "StockMarket",
+  "wallstreetbets",
+  "options",
+  "SecurityAnalysis",
 ];
 
 interface RedditPost {
@@ -61,9 +72,12 @@ export async function fetchSubredditPosts(
     const text = `${p.title} ${p.selftext || ""} ${p.link_flair_text || ""}`;
     const { matches, matchedTerms } = matchesAIKeywords(text);
 
+    // Skip memes and low-quality content
+    if (isMemeContent(p.title, p.link_flair_text, p.subreddit, p.score)) continue;
+
     // For AI-specific subreddits, include all posts
     // For general subreddits, only include if keywords match
-    const isAISub = ["MachineLearning", "LocalLLaMA", "artificial", "ChatGPT"].includes(subreddit);
+    const isAISub = AI_SUBREDDITS.map(s => s.toLowerCase()).includes(subreddit.toLowerCase());
 
     if (!isAISub && !matches) continue;
 
@@ -91,8 +105,9 @@ export async function fetchSubredditPosts(
 }
 
 export async function fetchAllAISubreddits(): Promise<ContentItem[]> {
+  const allSubs = [...AI_SUBREDDITS, ...MARKET_SUBREDDITS];
   const results = await Promise.allSettled(
-    AI_SUBREDDITS.flatMap((sub) => [
+    allSubs.flatMap((sub) => [
       fetchSubredditPosts(sub, "hot", 25),
       fetchSubredditPosts(sub, "rising", 15),
     ])
