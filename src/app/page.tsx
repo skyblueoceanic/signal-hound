@@ -7,7 +7,21 @@ import { DetailPanel } from "./components/DetailPanel";
 import { SourceFilter } from "./components/SourceFilter";
 import { StatsBar } from "./components/StatsBar";
 import { TickerBar } from "./components/TickerBar";
+import { AuthModal } from "./components/AuthModal";
+import { KeywordBar } from "./components/KeywordBar";
+import { TickerSearch } from "./components/TickerSearch";
 import type { TrendingItemData, AlertData, TickerSummary } from "./types";
+
+interface AuthUser {
+  id: number;
+  email: string;
+  name: string | null;
+}
+
+interface UserKeyword {
+  id: number;
+  keyword: string;
+}
 
 export default function Home() {
   const [items, setItems] = useState<TrendingItemData[]>([]);
@@ -19,6 +33,38 @@ export default function Home() {
   const [selectedItem, setSelectedItem] = useState<TrendingItemData | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Auth state
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [keywords, setKeywords] = useState<UserKeyword[]>([]);
+  const [keywordFilter, setKeywordFilter] = useState<string | null>(null);
+
+  // Check auth on mount
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user) {
+          setUser(data.user);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Fetch keywords when logged in
+  useEffect(() => {
+    if (!user) {
+      setKeywords([]);
+      return;
+    }
+    fetch("/api/keywords")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.keywords) setKeywords(data.keywords);
+      })
+      .catch(() => {});
+  }, [user]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -58,6 +104,33 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
+  async function handleSignOut() {
+    await fetch("/api/auth/signout", { method: "POST" });
+    setUser(null);
+    setKeywords([]);
+    setKeywordFilter(null);
+  }
+
+  async function handleAddKeyword(keyword: string) {
+    const res = await fetch("/api/keywords", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ keyword }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setKeywords((prev) => [...prev, data.keyword]);
+    }
+  }
+
+  async function handleRemoveKeyword(id: number) {
+    await fetch(`/api/keywords?id=${id}`, { method: "DELETE" });
+    setKeywords((prev) => prev.filter((k) => k.id !== id));
+    if (keywords.find((k) => k.id === id)?.keyword === keywordFilter) {
+      setKeywordFilter(null);
+    }
+  }
+
   const viralCount = items.filter((i) => i.isViral).length;
   const sourceCounts = items.reduce(
     (acc, item) => {
@@ -69,10 +142,22 @@ export default function Home() {
 
   const allSourceTypes = Object.keys(sourceCounts);
 
-  const filteredItems =
+  // Apply source filter
+  let filteredItems =
     sourceFilter.length === 0
       ? items
       : items.filter((item) => sourceFilter.includes(item.sourceType));
+
+  // Apply keyword filter (client-side text search)
+  if (keywordFilter) {
+    const kw = keywordFilter.toLowerCase();
+    filteredItems = filteredItems.filter(
+      (item) =>
+        item.title.toLowerCase().includes(kw) ||
+        item.matchedKeywords.some((mk) => mk.toLowerCase().includes(kw)) ||
+        (item.description && item.description.toLowerCase().includes(kw))
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -108,6 +193,16 @@ export default function Home() {
                   Viral Only
                 </button>
               </div>
+
+              {/* Ticker search (logged-in only) */}
+              {user && (
+                <TickerSearch
+                  tickers={tickers}
+                  selectedTicker={tickerFilter}
+                  onSelect={setTickerFilter}
+                />
+              )}
+
               <button
                 onClick={fetchData}
                 className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm transition-colors"
@@ -119,8 +214,54 @@ export default function Home() {
                   {lastUpdated.toLocaleTimeString()}
                 </span>
               )}
+
+              {/* Auth button */}
+              {user ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 hidden sm:inline">
+                    {user.name || user.email}
+                  </span>
+                  <button
+                    onClick={handleSignOut}
+                    className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 text-sm transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="px-3 py-1.5 rounded-lg bg-gray-900 text-white hover:bg-gray-800 text-sm font-medium transition-colors"
+                >
+                  Sign In
+                </button>
+              )}
             </div>
           </div>
+
+          {/* Keyword bar (logged-in only) */}
+          {user && keywords.length > 0 && (
+            <div className="mt-2">
+              <KeywordBar
+                keywords={keywords}
+                selectedKeyword={keywordFilter}
+                onSelect={setKeywordFilter}
+                onAdd={handleAddKeyword}
+                onRemove={handleRemoveKeyword}
+              />
+            </div>
+          )}
+          {user && keywords.length === 0 && (
+            <div className="mt-2">
+              <KeywordBar
+                keywords={[]}
+                selectedKeyword={null}
+                onSelect={setKeywordFilter}
+                onAdd={handleAddKeyword}
+                onRemove={handleRemoveKeyword}
+              />
+            </div>
+          )}
 
           {/* Ticker Bar — prominent, right under header */}
           {tickers.length > 0 && (
@@ -160,14 +301,12 @@ export default function Home() {
               selected={sourceFilter}
               onToggle={(source) => {
                 setSourceFilter((prev) => {
-                  // If empty (all selected), switch to "all except this one"
                   if (prev.length === 0) {
                     return allSourceTypes.filter((s) => s !== source);
                   }
                   const next = prev.includes(source)
                     ? prev.filter((s) => s !== source)
                     : [...prev, source];
-                  // If everything is deselected or everything is selected, reset to "all"
                   return next.length === 0 || next.length === allSourceTypes.length
                     ? []
                     : next;
@@ -187,7 +326,9 @@ export default function Home() {
                 <div className="text-gray-400 text-lg mb-2">
                   {tickerFilter
                     ? `No trending items for $${tickerFilter}`
-                    : "No trending items yet"}
+                    : keywordFilter
+                      ? `No items matching "${keywordFilter}"`
+                      : "No trending items yet"}
                 </div>
                 <div className="text-gray-500 text-sm max-w-md">
                   {tickerFilter ? (
@@ -196,6 +337,13 @@ export default function Home() {
                       className="text-orange-600 hover:text-orange-500"
                     >
                       Clear ticker filter
+                    </button>
+                  ) : keywordFilter ? (
+                    <button
+                      onClick={() => setKeywordFilter(null)}
+                      className="text-orange-600 hover:text-orange-500"
+                    >
+                      Clear keyword filter
                     </button>
                   ) : (
                     <>
@@ -241,6 +389,14 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <AuthModal
+          onClose={() => setShowAuthModal(false)}
+          onAuth={(u) => setUser(u)}
+        />
+      )}
     </div>
   );
 }
