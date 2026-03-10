@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Item {
+  id            Int       @id @default(autoincrement())
+  sourceType    String    @map("source_type")
+  externalId    String    @map("external_id")
+  title         String
+  url           String
+  author        String?
+  description   String?
+  publishedAt   DateTime  @map("published_at")
+  firstSeenAt   DateTime  @default(now()) @map("first_seen_at")
+  lastUpdatedAt DateTime  @updatedAt @map("last_updated_at")
+
+  // Current engagement metrics
+  score        Int @default(0)
+  commentCount Int @default(0) @map("comment_count")
+
+  // AI relevance
+  matchedKeywords String[] @map("matched_keywords")
+  isRelevant      Boolean  @default(true) @map("is_relevant")
+
+  // Virality
+  viralityScore Float   @default(0) @map("virality_score")
+  isViral       Boolean @default(false) @map("is_viral")
+  velocity      Float   @default(0)
+  acceleration  Float   @default(0)
+
+  // Platform-specific metadata (stored as JSON)
+  metadata Json?
+
+  // Relations
+  snapshots    EngagementSnapshot[]
+  alerts       Alert[]
+  tickerImpacts TickerImpact[]
+
+  @@unique([sourceType, externalId])
+  @@index([isViral, viralityScore])
+  @@index([sourceType])
+  @@index([publishedAt])
+  @@map("items")
+}
+
+model EngagementSnapshot {
+  id          Int      @id @default(autoincrement())
+  itemId      Int      @map("item_id")
+  score       Int
+  commentCount Int     @map("comment_count")
+  recordedAt  DateTime @default(now()) @map("recorded_at")
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId, recordedAt])
+  @@map("engagement_snapshots")
+}
+
+model Alert {
+  id        Int      @id @default(autoincrement())
+  itemId    Int      @map("item_id")
+  type      String   // "velocity_spike", "absolute_threshold", "cross_platform"
+  message   String
+  score     Float
+  createdAt DateTime @default(now()) @map("created_at")
+  read      Boolean  @default(false)
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([read])
+  @@map("alerts")
+}
+
+model TickerImpact {
+  id        Int      @id @default(autoincrement())
+  itemId    Int      @map("item_id")
+  ticker    String   // e.g. "NVDA", "MSFT"
+  name      String   // e.g. "NVIDIA", "Microsoft"
+  sentiment String   // "bullish", "bearish", "neutral"
+  confidence Float   @default(0.5) // 0-1 confidence score
+  source    String   @default("keyword") // "keyword", "llm", "manual"
+  createdAt DateTime @default(now()) @map("created_at")
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, ticker])
+  @@index([ticker])
+  @@index([ticker, sentiment])
+  @@map("ticker_impacts")
+}

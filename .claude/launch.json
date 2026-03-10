@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "trending-dev",
+      "runtimeExecutable": "wsl",
+      "runtimeArgs": ["-e", "bash", "-c", "cd /home/skyblueoceanic/projects/Trending && npm run dev"],
+      "port": 3000
+    }
+  ]
+}
