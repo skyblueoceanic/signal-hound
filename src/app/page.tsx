@@ -78,21 +78,11 @@ export default function Home() {
       <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-[1600px] mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <img
-                src="/logo.png"
-                alt="Signal Hound"
-                className="h-10 w-10 object-cover object-top rounded-lg"
-              />
-              <div>
-                <h1 className="text-lg font-bold tracking-tight text-gray-900 leading-tight">
-                  Signal Hound
-                </h1>
-                <p className="text-[11px] text-gray-400 leading-tight">
-                  Hear the story before the market does
-                </p>
-              </div>
-            </div>
+            <img
+              src="/logo.png"
+              alt="Signal Hound - Hear the story before the market does"
+              className="h-14 md:h-16"
+            />
             <div className="flex items-center gap-3">
               <div className="flex gap-1.5">
                 <button
