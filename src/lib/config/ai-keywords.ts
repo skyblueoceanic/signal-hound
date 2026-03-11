@@ -70,6 +70,16 @@ export const AI_KEYWORDS: Record<string, string[]> = {
     "defense spending", "military", "missile strike", "airstrike",
     "ceasefire", "escalation", "de-escalation", "geopolitical risk",
   ],
+  // Neuroscience / Brain-Computer
+  neuroscience: [
+    "brain upload", "brain-computer interface", "BCI", "connectome",
+    "whole brain emulation", "brain mapping", "brain simulation",
+    "neuromorphic", "neuromorphic computing", "neural interface",
+    "Neuralink", "mind uploading", "brain scan", "brain organoid",
+    "computational neuroscience", "cognitive computing",
+    "brain-machine interface", "neuroprosthetic", "optogenetics",
+    "brain emulation", "neural prosthetic", "brain-inspired computing",
+  ],
   // Energy markets
   energy: [
     "oil price", "crude oil", "WTI", "Brent crude", "natural gas",
@@ -112,4 +122,27 @@ export function matchesAIKeywords(text: string): {
   }
 
   return { matches: matchedTerms.length > 0, matchedTerms };
+}
+
+/**
+ * Enhanced matching that includes dynamic (auto-discovered) keywords.
+ * Pass in the active dynamic keywords fetched from DB.
+ */
+export function matchesAllKeywords(
+  text: string,
+  dynamicKeywords: string[]
+): { matches: boolean; matchedTerms: string[] } {
+  // First check static keywords
+  const result = matchesAIKeywords(text);
+  const lowerText = text.toLowerCase();
+
+  // Then check dynamic keywords
+  for (const kw of dynamicKeywords) {
+    if (lowerText.includes(kw.toLowerCase())) {
+      result.matchedTerms.push(`⚡${kw}`); // prefix to indicate dynamic
+      result.matches = true;
+    }
+  }
+
+  return result;
 }

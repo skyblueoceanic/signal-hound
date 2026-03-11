@@ -10,6 +10,7 @@ import { TickerBar } from "./components/TickerBar";
 import { AuthModal } from "./components/AuthModal";
 import { KeywordBar } from "./components/KeywordBar";
 import { TickerSearch } from "./components/TickerSearch";
+import { groupItems } from "../lib/grouping";
 import type { TrendingItemData, AlertData, TickerSummary } from "./types";
 
 interface AuthUser {
@@ -39,6 +40,7 @@ export default function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [keywords, setKeywords] = useState<UserKeyword[]>([]);
   const [keywordFilter, setKeywordFilter] = useState<string | null>(null);
+  const [groupingEnabled, setGroupingEnabled] = useState(true);
 
   // Check auth on mount
   useEffect(() => {
@@ -159,6 +161,9 @@ export default function Home() {
     );
   }
 
+  // Group items if enabled
+  const groupedFeed = groupingEnabled ? groupItems(filteredItems) : null;
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -193,6 +198,18 @@ export default function Home() {
                   Viral Only
                 </button>
               </div>
+
+              {/* Group / List toggle */}
+              <button
+                onClick={() => setGroupingEnabled(!groupingEnabled)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  groupingEnabled
+                    ? "bg-purple-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {groupingEnabled ? "Grouped" : "List"}
+              </button>
 
               {/* Ticker search (logged-in only) */}
               {user && (
@@ -361,6 +378,7 @@ export default function Home() {
                 items={filteredItems}
                 selectedId={selectedItem?.id}
                 onSelect={setSelectedItem}
+                grouped={groupedFeed}
               />
             )}
           </div>

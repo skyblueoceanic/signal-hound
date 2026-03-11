@@ -9,6 +9,10 @@ const AI_SUBREDDITS = [
   "artificial",
   "singularity",
   "ChatGPT",
+  "consciousness",
+  "neuroscience",
+  "Futurology",
+  "neurotech",
 ];
 
 // General market/finance subreddits — only AI-related content surfaces

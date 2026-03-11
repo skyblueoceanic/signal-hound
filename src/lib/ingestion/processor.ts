@@ -2,6 +2,7 @@ import type { ContentItem } from "../types";
 import { upsertItem, recordSnapshot, upsertTickerImpact } from "../db/items";
 import { processItemVirality } from "../engine/virality";
 import { findAffectedTickers } from "../config/ticker-map";
+import { discoverKeywords } from "../engine/keyword-discovery";
 
 export async function processItems(items: ContentItem[]): Promise<void> {
   for (const item of items) {
@@ -40,6 +41,19 @@ export async function processItems(items: ContentItem[]): Promise<void> {
         `Error processing item ${item.sourceType}:${item.externalId}:`,
         err
       );
+    }
+  }
+
+  // Keyword discovery: extract trending terms from this batch
+  if (items.length > 0) {
+    try {
+      const titles = items.map((i) => i.title);
+      const { discovered } = await discoverKeywords(titles);
+      if (discovered > 0) {
+        console.log(`[KeywordDiscovery] Discovered ${discovered} candidate keywords from ${items.length} items`);
+      }
+    } catch (err) {
+      console.error("[KeywordDiscovery] Error:", err);
     }
   }
 }

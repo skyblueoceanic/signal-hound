@@ -51,6 +51,13 @@ export const AI_RSS_FEEDS: Array<{
   { name: "Google News AI", url: "https://news.google.com/rss/search?q=artificial+intelligence+stock+market&hl=en-US&gl=US&ceid=US:en", category: "news" },
   { name: "Google News Energy", url: "https://news.google.com/rss/search?q=oil+energy+market&hl=en-US&gl=US&ceid=US:en", category: "news" },
   { name: "Google News Iran", url: "https://news.google.com/rss/search?q=Iran+sanctions+war+oil&hl=en-US&gl=US&ceid=US:en", category: "news" },
+
+  // Techmeme — curated tech news aggregator (high signal-to-noise)
+  { name: "Techmeme", url: "https://www.techmeme.com/feed.xml", category: "news" },
+
+  // Broader Google News coverage
+  { name: "Google News General AI", url: "https://news.google.com/rss/search?q=artificial+intelligence&hl=en-US&gl=US&ceid=US:en", category: "news" },
+  { name: "Google News Neuroscience AI", url: "https://news.google.com/rss/search?q=neuroscience+brain+computer+interface&hl=en-US&gl=US&ceid=US:en", category: "news" },
 ];
 
 export async function fetchRSSFeed(

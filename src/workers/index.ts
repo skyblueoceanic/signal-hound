@@ -11,6 +11,7 @@ import { fetchAllAIFeeds } from "../lib/ingestion/rss";
 import { fetchBenzingaHeadlines } from "../lib/ingestion/benzinga";
 import { fetchGoogleTrends } from "../lib/ingestion/google-trends";
 import { processItems } from "../lib/ingestion/processor";
+import { runKeywordCycle } from "../lib/engine/keyword-discovery";
 
 console.log("Starting Trending workers...");
 console.log("Sources: Hacker News, Reddit, GitHub, arXiv, Semantic Scholar, RSS, Benzinga, Google Trends");
@@ -134,6 +135,17 @@ cron.schedule("*/15 * * * *", async () => {
   }
 });
 
+// ─── Keyword Discovery: promote/retire every 15 minutes ─────────
+cron.schedule("*/15 * * * *", async () => {
+  console.log(`[${new Date().toISOString()}] Running keyword discovery cycle...`);
+  try {
+    const { promoted, retired } = await runKeywordCycle();
+    console.log(`  Keywords: ${promoted} promoted, ${retired} retired`);
+  } catch (err) {
+    console.error("Keyword cycle error:", err);
+  }
+});
+
 // ─── Initial fetch on startup ────────────────────────────────────
 async function initialFetch() {
   console.log("Running initial data fetch across all sources...\n");
@@ -172,7 +184,8 @@ async function initialFetch() {
   console.log("  - arXiv + SS:        every 30 min");
   console.log("  - RSS feeds:         every 5 min");
   console.log("  - Benzinga:          every 5 min");
-  console.log("  - Google Trends:     every 15 min\n");
+  console.log("  - Google Trends:     every 15 min");
+  console.log("  - Keyword Discovery: every 15 min\n");
 }
 
 initialFetch();

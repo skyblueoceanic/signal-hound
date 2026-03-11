@@ -132,3 +132,19 @@ model UserKeyword {
   @@index([userId])
   @@map("user_keywords")
 }
+
+model DynamicKeyword {
+  id          Int      @id @default(autoincrement())
+  keyword     String   @unique
+  status      String   @default("candidate") // candidate | active | retired
+  score       Float    @default(0)            // trending strength 0-1
+  hitCount    Int      @default(0) @map("hit_count")
+  missCount   Int      @default(0) @map("miss_count")
+  firstSeenAt DateTime @default(now()) @map("first_seen_at")
+  lastSeenAt  DateTime @default(now()) @map("last_seen_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("dynamic_keywords")
+}
