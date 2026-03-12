@@ -69,17 +69,12 @@ export function DetailPanel({
         </button>
       </div>
 
-      <div className="p-4 space-y-5">
-        {/* Title */}
+      <div className="p-4 space-y-4">
+        {/* Title — prominent */}
         <div>
-          <a
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-lg font-semibold text-gray-900 hover:text-orange-600 transition-colors leading-snug"
-          >
+          <h2 className="text-xl font-bold text-gray-900 leading-snug">
             {item.title}
-          </a>
+          </h2>
           <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 flex-wrap">
             {item.author && <span>by {item.author}</span>}
             <span>{getTimeAgo(new Date(item.publishedAt))}</span>
@@ -88,63 +83,49 @@ export function DetailPanel({
           </div>
         </div>
 
-        {/* Engagement chart (larger) */}
-        {sortedSnapshots.length >= 2 && (
-          <div>
-            <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-              Engagement Over Time
-            </div>
-            <div className="h-24 bg-gray-50 rounded-lg p-2 border border-gray-200">
-              <SparklineChart
-                data={sortedSnapshots.map((s) => s.score)}
-                color={item.isViral ? "#ef4444" : "#f97316"}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-gray-600 mt-1 px-1">
-              <span>{getTimeAgo(new Date(sortedSnapshots[0].recordedAt))}</span>
-              <span>{getTimeAgo(new Date(sortedSnapshots[sortedSnapshots.length - 1].recordedAt))}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Key metrics grid */}
-        <div className="grid grid-cols-2 gap-2">
-          <MetricCard label="Score" value={formatNumber(item.score)} />
-          <MetricCard label="Comments" value={formatNumber(item.commentCount)} />
-          <MetricCard
-            label="Virality"
-            value={item.viralityScore.toFixed(1)}
-            highlight={item.isViral}
-          />
-          <MetricCard
-            label="Velocity"
-            value={item.velocity > 0 ? `${item.velocity.toFixed(1)}/min` : "—"}
-            highlight={item.velocity > 1}
-          />
-          {item.acceleration > 0 && (
-            <MetricCard
-              label="Acceleration"
-              value={`+${item.acceleration.toFixed(2)}`}
-              highlight
-            />
-          )}
-          <MetricCard
-            label="Snapshots"
-            value={String(item.snapshots.length)}
-          />
-        </div>
+        {/* Open article button — prominent */}
+        <a
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 w-full py-3 px-4 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-sm font-medium transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+          Read Full Article
+        </a>
 
         {/* Description */}
         {item.description && (
-          <div>
-            <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-              Description
-            </div>
-            <p className="text-sm text-gray-600 leading-relaxed">
+          <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+            <p className="text-sm text-gray-700 leading-relaxed">
               {item.description}
             </p>
           </div>
         )}
+
+        {/* Embedded article iframe */}
+        <div className="rounded-lg border border-gray-200 overflow-hidden">
+          <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
+            <span className="text-xs text-gray-500 truncate max-w-[80%]">{item.url}</span>
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-orange-600 hover:text-orange-500 shrink-0"
+            >
+              Open ↗
+            </a>
+          </div>
+          <iframe
+            src={item.url}
+            className="w-full border-0"
+            style={{ height: "400px" }}
+            sandbox="allow-scripts allow-same-origin"
+            title={item.title}
+          />
+        </div>
 
         {/* Affected tickers */}
         {item.tickers && item.tickers.length > 0 && (
@@ -183,53 +164,32 @@ export function DetailPanel({
           </div>
         )}
 
-        {/* Engagement history table */}
-        {sortedSnapshots.length > 0 && (
-          <div>
+        {/* Compact metrics row */}
+        <div className="bg-gray-50 rounded-lg border border-gray-200 p-3">
+          <div className="flex items-center gap-4 flex-wrap text-xs">
+            <span><span className="text-gray-400">Score</span> <span className="text-gray-900 font-medium">{formatNumber(item.score)}</span></span>
+            <span><span className="text-gray-400">Comments</span> <span className="text-gray-900 font-medium">{formatNumber(item.commentCount)}</span></span>
+            <span><span className="text-gray-400">Virality</span> <span className={item.isViral ? "text-red-600 font-medium" : "text-gray-900 font-medium"}>{item.viralityScore.toFixed(1)}</span></span>
+            {item.velocity > 0 && (
+              <span><span className="text-gray-400">Vel</span> <span className={item.velocity > 1 ? "text-red-600 font-medium" : "text-gray-900 font-medium"}>{item.velocity.toFixed(1)}/min</span></span>
+            )}
+          </div>
+        </div>
+
+        {/* Engagement chart (compact) */}
+        {sortedSnapshots.length >= 2 && (
+          <div className="bg-gray-50 rounded-lg border border-gray-200 p-3">
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-              Engagement History
+              Engagement Over Time
             </div>
-            <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-gray-200 text-gray-500">
-                    <th className="text-left py-2 px-3 font-medium">Time</th>
-                    <th className="text-right py-2 px-3 font-medium">Score</th>
-                    <th className="text-right py-2 px-3 font-medium">Comments</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedSnapshots.slice(-10).reverse().map((s, i) => (
-                    <tr
-                      key={i}
-                      className="border-b border-gray-200/50 last:border-0"
-                    >
-                      <td className="py-1.5 px-3 text-gray-500">
-                        {getTimeAgo(new Date(s.recordedAt))}
-                      </td>
-                      <td className="py-1.5 px-3 text-right text-gray-900 font-medium">
-                        {formatNumber(s.score)}
-                      </td>
-                      <td className="py-1.5 px-3 text-right text-gray-500">
-                        {formatNumber(s.commentCount)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="h-16">
+              <SparklineChart
+                data={sortedSnapshots.map((s) => s.score)}
+                color={item.isViral ? "#ef4444" : "#f97316"}
+              />
             </div>
           </div>
         )}
-
-        {/* Open original link */}
-        <a
-          href={item.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full text-center py-2.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-sm font-medium transition-colors"
-        >
-          Open Original →
-        </a>
       </div>
     </div>
   );
