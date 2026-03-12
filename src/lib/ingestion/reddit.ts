@@ -76,8 +76,8 @@ export async function fetchSubredditPosts(
     const text = `${p.title} ${p.selftext || ""} ${p.link_flair_text || ""}`;
     const { matches, matchedTerms } = matchesAIKeywords(text);
 
-    // Skip memes and low-quality content
-    if (isMemeContent(p.title, p.link_flair_text, p.subreddit, p.score)) continue;
+    // Skip memes, image posts, and low-quality content
+    if (isMemeContent(p.title, p.link_flair_text, p.subreddit, p.score, p.url)) continue;
 
     // For AI-specific subreddits, include all posts
     // For general subreddits, only include if keywords match

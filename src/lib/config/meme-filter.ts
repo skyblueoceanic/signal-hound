@@ -23,11 +23,26 @@ export const MEME_TITLE_PATTERNS = [
   /change my mind/i,
   /wrong answers only/i,
   /🤡|💀|😂|🚀🚀🚀/,
+  /\blmao\b/i,
+  /\blmfao\b/i,
+  /\brofl\b/i,
+  /\bbruh\b/i,
+  /irl$/i,          // "me_irl", "AI_irl"
+  /be like$/i,      // "AI devs be like"
+  /in a nutshell/i,
+  /emotional damage/i,
+  /is wild/i,        // "this AI is wild" — casual reaction posts
+  /just vibes/i,
+  /no cap/i,
+  /real ones know/i,
+  /least unhinged/i,
+  /most sane/i,
 ];
 
 export const MEME_REDDIT_FLAIRS = [
   "meme", "humor", "shitpost", "funny", "satire", "joke",
   "memes", "humour", "shitposting", "discussion/humor",
+  "fun", "off-topic", "fluff", "low effort",
 ];
 
 // Subreddits where almost everything is memes
@@ -37,13 +52,37 @@ export const MEME_SUBREDDITS = [
   "AImemes",
   "dankmemes",
   "memes",
+  "meirl",
+  "me_irl",
+  "2meirl4meirl",
+  "technicallythetruth",
+];
+
+// Image/video hosting domains — posts linking here are almost never articles
+const IMAGE_VIDEO_HOSTS = [
+  "i.redd.it",
+  "i.imgur.com",
+  "imgur.com",
+  "v.redd.it",
+  "gfycat.com",
+  "streamable.com",
+  "giphy.com",
+  "media.giphy.com",
+  "i.imgflip.com",
+  "pbs.twimg.com",       // Twitter image CDN
+  "preview.redd.it",
+  "external-preview.redd.it",
+  "media.tenor.com",
+  "youtube.com/shorts",
+  "tiktok.com",
 ];
 
 export function isMemeContent(
   title: string,
   flair?: string | null,
   subreddit?: string | null,
-  score?: number
+  score?: number,
+  url?: string | null,
 ): boolean {
   // Check title patterns
   for (const pattern of MEME_TITLE_PATTERNS) {
@@ -61,6 +100,22 @@ export function isMemeContent(
     (s) => s.toLowerCase() === subreddit.toLowerCase()
   )) {
     return true;
+  }
+
+  // Image/video-only posts are almost always memes or low-value screenshots
+  if (url) {
+    try {
+      const hostname = new URL(url).hostname.replace(/^www\./, "");
+      const fullUrl = url.toLowerCase();
+      if (
+        IMAGE_VIDEO_HOSTS.some((h) => hostname === h || fullUrl.includes(h)) ||
+        /\.(jpg|jpeg|png|gif|webp|mp4|webm)(\?|$)/i.test(url)
+      ) {
+        return true;
+      }
+    } catch {
+      // invalid URL, skip check
+    }
   }
 
   // Very short title + high engagement on Reddit = likely meme
