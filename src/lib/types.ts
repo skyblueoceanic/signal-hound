@@ -64,14 +64,14 @@ export const VIRALITY_THRESHOLDS = {
     velocityPerMinute: 8,
   },
   github: {
-    absoluteScore: 5000, // 5K+ total stars (high bar for existing repos)
+    absoluteScore: 50000, // 50K+ total stars — only truly massive repos
     absoluteComments: 0,
-    velocityPerMinute: 1,
+    velocityPerMinute: 5, // 5 stars/min = genuinely spiking
   },
   arxiv: {
-    absoluteScore: 100,
+    absoluteScore: 500, // 500+ citations/score — truly landmark papers
     absoluteComments: 0,
-    velocityPerMinute: 0.2,
+    velocityPerMinute: 0.5,
   },
   rss: {
     absoluteScore: 0, // RSS doesn't have engagement metrics

@@ -63,7 +63,7 @@ export async function getTrendingItems(limit = 50, ticker?: string) {
         ? { tickerImpacts: { some: { ticker } } }
         : {}),
     },
-    orderBy: { viralityScore: "desc" },
+    orderBy: [{ viralityScore: "desc" }, { lastUpdatedAt: "desc" }],
     take: limit,
     include: {
       snapshots: {
