@@ -61,6 +61,7 @@ export async function calculateVirality(
   }
 
   // Calculate absolute score (0-100 scale)
+  // Sources with no engagement metrics (RSS, Benzinga) stay at 0
   if (thresholds.absoluteScore > 0) {
     absoluteScore = Math.min(
       (currentScore / thresholds.absoluteScore) * 50,
@@ -80,11 +81,18 @@ export async function calculateVirality(
     VIRALITY_WEIGHTS.velocity * velocityScore +
     VIRALITY_WEIGHTS.absolute * absoluteScore;
 
+  // Sources without engagement metrics can never be viral
+  const hasEngagementMetrics =
+    thresholds.absoluteScore > 0 ||
+    thresholds.absoluteComments > 0 ||
+    thresholds.velocityPerMinute > 0;
+
   // Determine if viral (tight thresholds — only truly spiking content)
-  const isViral =
-    combinedScore >= 70 || // combined threshold (raised from 60)
-    velocityScore >= 85 || // high velocity alone (raised from 80)
-    absoluteScore >= 95; // high absolute alone (raised from 90)
+  const isViral = hasEngagementMetrics && (
+    combinedScore >= 70 || // combined threshold
+    velocityScore >= 85 || // high velocity alone
+    absoluteScore >= 95    // high absolute alone
+  );
 
   return {
     velocityScore,
