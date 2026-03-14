@@ -54,19 +54,19 @@ export interface TrendingItem extends ContentItem {
 // absoluteScore/absoluteComments: reaching 50% of these = score of 50 (capped at 100)
 export const VIRALITY_THRESHOLDS = {
   hackernews: {
-    absoluteScore: 1000, // 1K+ points = truly viral on HN
-    absoluteComments: 500,
-    velocityPerMinute: 5,
+    absoluteScore: 500, // 500+ points = notable on HN
+    absoluteComments: 300,
+    velocityPerMinute: 3,
   },
   reddit: {
-    absoluteScore: 5000, // 5K+ upvotes = truly viral (not just popular)
-    absoluteComments: 500,
-    velocityPerMinute: 20,
+    absoluteScore: 2000, // 2K+ upvotes = viral
+    absoluteComments: 300,
+    velocityPerMinute: 10,
   },
   github: {
-    absoluteScore: 50000, // 50K+ total stars — only truly massive repos
+    absoluteScore: 20000, // 20K+ total stars = significant repo
     absoluteComments: 0,
-    velocityPerMinute: 5, // 5 stars/min = genuinely spiking
+    velocityPerMinute: 3, // 3 stars/min = genuinely spiking
   },
   arxiv: {
     absoluteScore: 500, // 500+ citations/score — truly landmark papers
