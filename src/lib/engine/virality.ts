@@ -87,11 +87,10 @@ export async function calculateVirality(
     thresholds.absoluteComments > 0 ||
     thresholds.velocityPerMinute > 0;
 
-  // Determine if viral (tight thresholds — only truly spiking content)
+  // Determine if viral — very strict: only genuinely exceptional content
   const isViral = hasEngagementMetrics && (
-    combinedScore >= 70 || // combined threshold
-    velocityScore >= 85 || // high velocity alone
-    absoluteScore >= 95    // high absolute alone
+    combinedScore >= 85 || // very high combined threshold
+    (velocityScore >= 90 && absoluteScore >= 50) // fast AND already significant
   );
 
   return {
