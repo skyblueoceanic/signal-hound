@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTrendingItems, getViralItems } from "@/lib/db/items";
+import { isMemeContent } from "@/lib/config/meme-filter";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -13,8 +14,14 @@ export async function GET(request: Request) {
         ? await getViralItems(limit, ticker)
         : await getTrendingItems(limit, ticker);
 
+    // Filter out meme content that slipped through ingestion
+    const filtered = items.filter((item) => {
+      const subreddit = (item.metadata as any)?.subreddit || null;
+      return !isMemeContent(item.title, null, subreddit, item.score, item.url);
+    });
+
     return NextResponse.json({
-      items: items.map((item) => ({
+      items: filtered.map((item) => ({
         id: item.id,
         sourceType: item.sourceType,
         title: item.title,
@@ -44,7 +51,7 @@ export async function GET(request: Request) {
           confidence: t.confidence,
         })) || [],
       })),
-      count: items.length,
+      count: filtered.length,
       ticker: ticker || null,
       timestamp: new Date().toISOString(),
     });

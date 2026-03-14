@@ -12,6 +12,7 @@ import { fetchBenzingaHeadlines } from "../lib/ingestion/benzinga";
 import { fetchGoogleTrends } from "../lib/ingestion/google-trends";
 import { processItems } from "../lib/ingestion/processor";
 import { runKeywordCycle } from "../lib/engine/keyword-discovery";
+import { getTrendingItems, getViralItems, saveDailySnapshot } from "../lib/db/items";
 
 console.log("Starting Trending workers...");
 console.log("Sources: Hacker News, Reddit, GitHub, arXiv, Semantic Scholar, RSS, Benzinga, Google Trends");
@@ -143,6 +144,65 @@ cron.schedule("*/15 * * * *", async () => {
     console.log(`  Keywords: ${promoted} promoted, ${retired} retired`);
   } catch (err) {
     console.error("Keyword cycle error:", err);
+  }
+});
+
+// ─── Daily Snapshot: midnight ET (5:00 AM UTC) ──────────────────
+cron.schedule("0 5 * * *", async () => {
+  console.log(`[${new Date().toISOString()}] Saving daily snapshot...`);
+  try {
+    // Get today's date in ET
+    const etDate = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+
+    const [trending, viral] = await Promise.all([
+      getTrendingItems(50),
+      getViralItems(20),
+    ]);
+
+    // Merge and deduplicate (viral items are a subset of trending)
+    const seenIds = new Set<number>();
+    const allItems = [...trending, ...viral].filter((item) => {
+      if (seenIds.has(item.id)) return false;
+      seenIds.add(item.id);
+      return true;
+    });
+
+    // Serialize in same shape as API response
+    const serialized = allItems.map((item) => ({
+      id: item.id,
+      sourceType: item.sourceType,
+      title: item.title,
+      url: item.url,
+      author: item.author,
+      description: item.description,
+      publishedAt: item.publishedAt,
+      score: item.score,
+      commentCount: item.commentCount,
+      matchedKeywords: item.matchedKeywords,
+      viralityScore: item.viralityScore,
+      isViral: item.isViral,
+      velocity: item.velocity,
+      acceleration: item.acceleration,
+      metadata: item.metadata,
+      firstSeenAt: item.firstSeenAt,
+      lastUpdatedAt: item.lastUpdatedAt,
+      snapshots: item.snapshots.map((s) => ({
+        score: s.score,
+        commentCount: s.commentCount,
+        recordedAt: s.recordedAt,
+      })),
+      tickers: item.tickerImpacts?.map((t) => ({
+        ticker: t.ticker,
+        name: t.name,
+        sentiment: t.sentiment,
+        confidence: t.confidence,
+      })) || [],
+    }));
+
+    await saveDailySnapshot(etDate, serialized);
+    console.log(`  Snapshot saved for ${etDate}: ${serialized.length} items`);
+  } catch (err) {
+    console.error("Daily snapshot error:", err);
   }
 });
 

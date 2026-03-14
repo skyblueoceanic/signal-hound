@@ -10,6 +10,8 @@ import { TickerBar } from "./components/TickerBar";
 import { AuthModal } from "./components/AuthModal";
 import { KeywordBar } from "./components/KeywordBar";
 import { TickerSearch } from "./components/TickerSearch";
+import { DateSelector } from "./components/DateSelector";
+import { TranslateButton } from "./components/TranslateButton";
 import { groupItems } from "../lib/grouping";
 import type { TrendingItemData, AlertData, TickerSummary } from "./types";
 
@@ -41,6 +43,8 @@ export default function Home() {
   const [keywords, setKeywords] = useState<UserKeyword[]>([]);
   const [keywordFilter, setKeywordFilter] = useState<string | null>(null);
   const [groupingEnabled, setGroupingEnabled] = useState(true);
+  const [viewMode, setViewMode] = useState<string>("live"); // "live" or date string
+  const [isKorean, setIsKorean] = useState(false);
 
   // Check auth on mount
   useEffect(() => {
@@ -70,6 +74,19 @@ export default function Home() {
 
   const fetchData = useCallback(async () => {
     try {
+      if (viewMode !== "live") {
+        // Historical snapshot mode
+        const res = await fetch(`/api/snapshots?date=${viewMode}`);
+        if (res.ok) {
+          const data = await res.json();
+          setItems(data.items || []);
+        }
+        setAlerts([]);
+        setLastUpdated(new Date());
+        setLoading(false);
+        return;
+      }
+
       const tickerParam = tickerFilter ? `&ticker=${tickerFilter}` : "";
       const [itemsRes, alertsRes, tickersRes] = await Promise.all([
         fetch(`/api/items?filter=${filter}&limit=50${tickerParam}`),
@@ -98,13 +115,16 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [filter, tickerFilter]);
+  }, [filter, tickerFilter, viewMode]);
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, [fetchData]);
+    // Only auto-refresh in live mode
+    if (viewMode === "live") {
+      const interval = setInterval(fetchData, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [fetchData, viewMode]);
 
   async function handleSignOut() {
     await fetch("/api/auth/signout", { method: "POST" });
@@ -199,6 +219,16 @@ export default function Home() {
                 </button>
               </div>
 
+              {/* Date selector — Live or historical snapshot */}
+              <DateSelector
+                selected={viewMode}
+                onSelect={(v) => {
+                  setViewMode(v);
+                  setLoading(true);
+                  setSelectedItem(null);
+                }}
+              />
+
               {/* Group / List toggle */}
               <button
                 onClick={() => setGroupingEnabled(!groupingEnabled)}
@@ -210,6 +240,9 @@ export default function Home() {
               >
                 {groupingEnabled ? "Grouped" : "List"}
               </button>
+
+              {/* Korean translation toggle */}
+              <TranslateButton onLanguageChange={setIsKorean} />
 
               {/* Ticker search (logged-in only) */}
               {user && (
@@ -303,6 +336,28 @@ export default function Home() {
           style={{ height: "calc(100vh - 120px)" }}
         >
           <div className="p-4">
+            {/* Historical snapshot banner */}
+            {viewMode !== "live" && (
+              <div className="mb-3 px-4 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center justify-between">
+                <span>
+                  Viewing snapshot from{" "}
+                  <strong>
+                    {new Date(viewMode + "T12:00:00").toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </strong>
+                </span>
+                <button
+                  onClick={() => { setViewMode("live"); setLoading(true); }}
+                  className="text-amber-600 hover:text-amber-800 font-medium"
+                >
+                  Back to Live
+                </button>
+              </div>
+            )}
+
             {/* Alert Banner */}
             {alerts.length > 0 && <AlertBanner alerts={alerts} />}
 

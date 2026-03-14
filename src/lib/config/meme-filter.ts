@@ -37,6 +37,17 @@ export const MEME_TITLE_PATTERNS = [
   /real ones know/i,
   /least unhinged/i,
   /most sane/i,
+  /didn'?t hold back/i,  // "Grok didn't hold back" — reaction posts
+  /goes? hard/i,          // "this AI goes hard"
+  /shows up/i,            // "Kurt Cobain shows up" — casual entertainment
+  /check this out/i,
+  /you won'?t believe/i,
+  /I asked .* to/i,       // "I asked ChatGPT to write..." — casual demos
+  /I told .* to/i,
+  /look what .* made/i,
+  /made .* using AI/i,    // casual "look what I made" posts
+  /rate my/i,
+  /is (crazy|insane|nuts|unreal)/i,
 ];
 
 export const MEME_REDDIT_FLAIRS = [

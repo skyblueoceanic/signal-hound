@@ -148,3 +148,14 @@ model DynamicKeyword {
   @@index([status])
   @@map("dynamic_keywords")
 }
+
+model DailySnapshot {
+  id        Int      @id @default(autoincrement())
+  date      String   @unique // "2026-03-12" format, ET timezone
+  items     Json     // Full serialized item array (same shape as API response)
+  itemCount Int      @map("item_count")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([date])
+  @@map("daily_snapshots")
+}

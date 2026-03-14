@@ -159,6 +159,29 @@ export async function getTickerSummary() {
   }));
 }
 
+// ─── Daily Snapshots ─────────────────────────────────────────────
+
+export async function saveDailySnapshot(date: string, items: unknown[]) {
+  return prisma.dailySnapshot.upsert({
+    where: { date },
+    update: { items: items as any, itemCount: items.length },
+    create: { date, items: items as any, itemCount: items.length },
+  });
+}
+
+export async function getDailySnapshot(date: string) {
+  return prisma.dailySnapshot.findUnique({ where: { date } });
+}
+
+export async function getAvailableSnapshotDates() {
+  const snapshots = await prisma.dailySnapshot.findMany({
+    select: { date: true, itemCount: true },
+    orderBy: { date: "desc" },
+    take: 90,
+  });
+  return snapshots;
+}
+
 export async function getItemsByTicker(ticker: string, limit = 50) {
   return prisma.item.findMany({
     where: {
